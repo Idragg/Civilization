@@ -1,45 +1,43 @@
 package civilization.view;
 
 import civilization.model.Model;
+import civilization.model.map.Map;
 import civilization.model.map.Tile;
-import civilization.view.tile.TileView;
-import javafx.scene.Node;
+import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
 
 public class Presenter {
     private Model model;
     private View view;
 
-    private Tile selectedTile = null;
-
     public Presenter(Model model, View view) {
         this.model = model;
         this.view = view;
-
-        view.generateGrid(model.getMap());
-
-        addEventHandlers();
+        renderMap();
     }
 
-    private void addEventHandlers() {
-        for (Node node : view.getChildren()) {
-            if (node instanceof TileView tileView) {
-                tileView.setOnMouseClicked(event -> {
-                    handleTileClick(tileView.getTile());
-                });
+    private void renderMap() {
+        view.clear();
+        Map map = model.getMap();
+
+        for (int col = 0; col < map.getWidth(); col++) {
+            for (int row = 0; row < map.getHeight(); row++) {
+                Tile tile = map.getTile(col, row);
+                Paint color = getTerrainColor(tile.getTerrainType());
+
+                // De Presenter vertelt de View wat hij moet doen met simpele types (int, Paint)
+                view.addTile(col, row, color);
             }
         }
     }
-    private void handleTileClick(Tile clickedTile) {
-        if (selectedTile == null) {
-            // Logica voor selecteren
-            if (clickedTile.getOccupied()) { // Check of er een unit op de tegel staat
-                selectedTile = clickedTile;
-                System.out.println("Geselecteerd: " + clickedTile.getTerrainType());
-            }
-        } else {
-            selectedTile = null;
-            view.generateGrid(model.getMap()); // Ververs het scherm
-            addEventHandlers(); // Belangrijk: na generateGrid moet je de handlers opnieuw koppelen!
-        }
+
+    private Paint getTerrainColor(civilization.model.map.TerrainType type) {
+        return switch (type) {
+            case GRASSLAND -> Color.LIGHTGREEN;
+            case DESERT -> Color.MOCCASIN;
+            case OCEAN -> Color.AZURE;
+            case MOUNTAIN -> Color.SADDLEBROWN;
+            case FOREST -> Color.FORESTGREEN;
+        };
     }
 }

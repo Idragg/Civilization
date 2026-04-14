@@ -7,7 +7,7 @@ public class Model {
     private Map map;
 
     public  Model() {
-        map = new Map(20,15);
+        map = new Map(Settings.WIDTHMAP,Settings.HEIGHTMAP);
     }
 
     public Map getMap() {
