@@ -1,6 +1,8 @@
 package civilization.model.map;
 
 import civilization.model.player.Civilization;
+import civilization.model.units.Unit;
+import civilization.model.units.Warrior;
 
 public class Tile {
     private TerrainType terrainType;
@@ -8,6 +10,7 @@ public class Tile {
     private int row;
     private int col;
     private boolean occupied;
+    private Unit unit;
 
     public Tile(TerrainType terrainType, int row, int col) {
         this.terrainType = terrainType;
@@ -38,5 +41,14 @@ public class Tile {
 
     public boolean getOccupied() {
         return occupied;
+    }
+
+    public void setUnit(Warrior warrior) {
+        this.unit = warrior;
+        this.occupied = true;
+    }
+
+    public Unit getUnit() {
+        return unit;
     }
 }

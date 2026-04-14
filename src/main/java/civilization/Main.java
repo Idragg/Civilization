@@ -1,6 +1,8 @@
 package civilization;
 
 import civilization.model.Model;
+import civilization.model.units.Unit;
+import civilization.model.units.Warrior;
 import civilization.view.Presenter;
 import civilization.view.View;
 import javafx.application.Application;

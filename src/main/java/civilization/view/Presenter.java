@@ -27,6 +27,10 @@ public class Presenter {
 
                 // De Presenter vertelt de View wat hij moet doen met simpele types (int, Paint)
                 view.addTile(col, row, color);
+
+                if (tile.getUnit()!=null) {
+                    view.addUnitToTile(tile.getCol(), tile.getRow(), Color.BLUE);
+                }
             }
         }
     }
