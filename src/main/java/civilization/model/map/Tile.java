@@ -23,6 +23,9 @@ public class Tile {
         this.civilization = civilization;
     }
 
+    public void setUnit(Unit unit) { this.unit = unit; }
+    public void removeUnit() { this.unit = null; }
+
     public TerrainType getTerrainType() {
         return terrainType;
     }

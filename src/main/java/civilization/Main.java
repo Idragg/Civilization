@@ -17,7 +17,6 @@ public class Main extends Application {
         Presenter presenter = new Presenter(model, view);
 
         Scene scene = new Scene(view, 1000,750);
-        stage.setFullScreen(true);
         stage.setTitle("Civilization");
         stage.setScene(scene);
         stage.show();

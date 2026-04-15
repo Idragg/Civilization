@@ -1,56 +1,65 @@
 package civilization.view;
 
+import civilization.model.Settings;
 import civilization.view.tile.TileView;
+import javafx.geometry.Point2D;
+import javafx.scene.image.Image;
 import javafx.scene.layout.Pane;
-import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
-import javafx.scene.shape.Circle;
+
 
 public class View extends Pane {
-    private static final double RADIUS = 30.0;
+    private static final double RADIUS = Settings.TILE_SIZE_RADIUS;
+    private TileView[][] tileArray; // Handig om later tiles terug te vinden
 
     public void addTile(int col, int row, Paint terrainColor) {
-        double horizontalSpacing = RADIUS * 1.5;
-        double verticalSpacing = Math.sqrt(3) * RADIUS;
-
         TileView tileView = new TileView(terrainColor, RADIUS);
+        Point2D center = getTileCenter(col, row);
 
-        // xPos berekening
-        double xPos = col * horizontalSpacing;
+        tileView.setLayoutX(center.getX());
+        tileView.setLayoutY(center.getY());
 
-        // yPos berekening met verspringen per kolom
-        double yPos = row * verticalSpacing;
-        if (col % 2 != 0) {
-            yPos += verticalSpacing / 2.0;
+        if (tileArray == null) {
+            // Fix: zorg dat de array bestaat (bijv. 20x20 of dynamisch)
+            tileArray = new TileView[20][20];
         }
-
-        // Belangrijk: Omdat de polygon rond (0,0) is getekend,
-        tileView.setLayoutX(xPos + RADIUS);
-        tileView.setLayoutY(yPos + (verticalSpacing / 2.0));
-
+        tileArray[col][row] = tileView;
         this.getChildren().add(tileView);
     }
 
-    public void clear() {
-        this.getChildren().clear();
+    // Deze methode is nu super simpel!
+    public void addUnitToTile(int col, int row, Paint playerColor, Image unitImage) {
+        if (tileArray != null && tileArray[col][row] != null) {
+            // Als unitImage null is, zal TileView de visuals verwijderen
+            tileArray[col][row].setUnit(playerColor, unitImage);
+        }
     }
 
-    public void addUnitToTile(int col, int row, Paint unitColor) {
-        // Gebruik exact dezelfde xPos/yPos berekening als bij de tiles
-        double horizontalSpacing = RADIUS * 1.5;
-        double verticalSpacing = Math.sqrt(3) * RADIUS;
+    private Point2D getTileCenter(int col, int row) {
+        // Breedte van pointy hex = sqrt(3) * R
+        // Hoogte van pointy hex = 2 * R
+        double horizontalSpacing = RADIUS * Math.sqrt(3);
+        double verticalSpacing = RADIUS * 1.5;
 
-        double xPos = col * horizontalSpacing + RADIUS;
-        double yPos = row * verticalSpacing + (verticalSpacing / 2.0);
-        if (col % 2 != 0) yPos += verticalSpacing / 2.0;
+        // LET OP: Omdat je in je screenshot kolommen ziet verspringen,
+        // gebruik je waarschijnlijk "Flat Top" logica in een "Pointy" grid.
+        // Voor de oriëntatie in jouw screenshot (image_25f38c) moet dit het zijn:
 
-        // Maak een simpele representatie van de pion (bijv. een cirkel)
-        Circle unitMarker = new Circle(10, unitColor);
-        unitMarker.setStroke(Color.WHITE);
+        double xPos = col * horizontalSpacing;
+        if (row % 2 != 0) {
+            xPos += horizontalSpacing / 2.0;
+        }
+        double yPos = row * verticalSpacing;
 
-        unitMarker.setLayoutX(xPos);
-        unitMarker.setLayoutY(yPos);
+        return new Point2D(xPos + (horizontalSpacing/2), yPos + RADIUS);
+    }
 
-        this.getChildren().add(unitMarker);
+    public void clear() {
+       this.getChildren().clear();
+       this.tileArray = null;
+    }
+
+    public TileView getTileView(int col, int row) {
+        return tileArray[col][row];
     }
 }

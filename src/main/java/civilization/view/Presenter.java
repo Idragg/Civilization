@@ -2,20 +2,128 @@ package civilization.view;
 
 import civilization.model.Model;
 import civilization.model.map.Map;
+import civilization.model.map.TerrainType;
 import civilization.model.map.Tile;
+import civilization.model.units.Unit;
+import civilization.model.units.Warrior;
+import civilization.view.tile.TileView;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
+import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 
 public class Presenter {
     private Model model;
     private View view;
+    private Tile selectedTile;
+
+    Image settlerImage = new Image(getClass().getResourceAsStream("/unitsCiv6/Settler_Civ6.jpg"));
 
     public Presenter(Model model, View view) {
         this.model = model;
         this.view = view;
         renderMap();
+        addEventHandlers();
     }
 
+    public void addEventHandlers() {
+        Map map = model.getMap();
+
+        for (int col = 0; col < map.getWidth(); col++) {
+            for (int row = 0; row < map.getHeight(); row++) {
+                // Haal de TileView op uit de View (deze moet in de tileArray zitten)
+                TileView tileView = view.getTileView(col, row);
+
+                if (tileView != null) {
+                    final int finalCol = col;
+                    final int finalRow = row;
+
+                    // Gebruik de standaard JavaFX methode
+                    tileView.setOnMouseClicked(event -> {
+                        handleTileClick(finalCol, finalRow);
+                    });
+                }
+            }
+        }
+    }
+
+    public void handleTileClick(int col, int row) {
+        Tile clickedTile = model.getMap().getTile(col, row);
+
+        if (selectedTile == null) {
+            // STAP 1: select the unit you want to move
+            if (clickedTile.getUnit() != null) {
+                selectedTile = clickedTile;
+                System.out.println("Unit geselecteerd op " + col + "," + row);
+            }
+        } else {
+            Unit unit = selectedTile.getUnit();
+            if (unit != null) {
+                int distance = calculateDistance(selectedTile, clickedTile);
+                // STAP 2: moves unit to new tile
+
+                if (distance <= unit.getMovementPoints()) {
+                    moveUnit(selectedTile, clickedTile);
+                } else {
+                    System.out.println("Te ver! Afstand: " + distance);
+                    handleMovementToBig();
+                }
+                System.out.println("Van: " + selectedTile.getCol() + "," + selectedTile.getRow());
+                System.out.println("Naar: " + clickedTile.getCol() + "," + clickedTile.getRow());
+                System.out.println("Berekende afstand: " + distance);
+
+                selectedTile = null; // unselects tile
+                renderMap(); // draws map after change
+                addEventHandlers();
+            }
+        }
+    }
+
+    private int calculateDistance(Tile a, Tile b) {
+        int col1 = a.getCol();
+        int row1 = a.getRow();
+        int col2 = b.getCol();
+        int row2 = b.getRow();
+
+        // De standaard Pointy-Top Axiale formule (zonder gedraaide assen)
+        int q1 = col1 - (row1 - (row1 % 2)) / 2;
+        int r1 = row1;
+
+        int q2 = col2 - (row2 - (row2 % 2)) / 2;
+        int r2 = row2;
+
+        return (Math.abs(q1 - q2)
+                + Math.abs(q1 + r1 - q2 - r2)
+                + Math.abs(r1 - r2)) / 2;
+    }
+
+    private void handleMovementToBig() {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Movement to big");
+        alert.setHeaderText("Movement to big");
+        alert.setContentText("Movement to big");
+        alert.getButtonTypes().setAll(ButtonType.OK);
+        alert.showAndWait();
+
+    }
+
+    private void moveUnit(Tile from, Tile to) {
+        // 1. Haal de unit op
+        Unit unit = from.getUnit();
+
+        // 2. Veiligheidscheck: is er wel een unit om te verplaatsen?
+        if (unit != null && to.getUnit() == null) {
+            // 3. Update het model: verplaats de referentie
+            to.setUnit(unit);
+            from.removeUnit();
+
+            // 4. Update de unit zelf (nu is hij gegarandeerd niet null)
+            unit.setCoordinates(to.getCol(), to.getRow());
+        }
+    }
+
+    // makes te map and places a unit on the board
     private void renderMap() {
         view.clear();
         Map map = model.getMap();
@@ -23,23 +131,24 @@ public class Presenter {
         for (int col = 0; col < map.getWidth(); col++) {
             for (int row = 0; row < map.getHeight(); row++) {
                 Tile tile = map.getTile(col, row);
-                Paint color = getTerrainColor(tile.getTerrainType());
+                view.addTile(col, row, getTerrainColor(tile.getTerrainType()));
 
-                // De Presenter vertelt de View wat hij moet doen met simpele types (int, Paint)
-                view.addTile(col, row, color);
-
-                if (tile.getUnit()!=null) {
-                    view.addUnitToTile(tile.getCol(), tile.getRow(), Color.BLUE);
+                if (tile.getUnit() != null) {
+                    view.addUnitToTile(col, row, Color.BLUE, settlerImage);
+                } else {
+                    // BELANGRIJK: Haal de unit weg als er geen meer staat!
+                    view.addUnitToTile(col, row, null, null);
                 }
             }
         }
     }
 
-    private Paint getTerrainColor(civilization.model.map.TerrainType type) {
+    // methode to give de hex a color
+    private Paint getTerrainColor(TerrainType type) {
         return switch (type) {
             case GRASSLAND -> Color.LIGHTGREEN;
             case DESERT -> Color.MOCCASIN;
-            case OCEAN -> Color.AZURE;
+            case OCEAN -> Color.SKYBLUE;
             case MOUNTAIN -> Color.SADDLEBROWN;
             case FOREST -> Color.FORESTGREEN;
         };
