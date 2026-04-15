@@ -32,9 +32,9 @@ public class SettingsPresenter {
     private void addEventHandlers() {
         view.getRectCivilization().setOnMouseClicked(event -> {
             Random rand = new Random();
-            int r = rand.nextInt(255);
-            int g = rand.nextInt(255);
-            int b = rand.nextInt(255);
+            int r = rand.nextInt(256);
+            int g = rand.nextInt(256);
+            int b = rand.nextInt(256);
             view.getRectCivilization().setFill(Color.rgb(r, g, b));
             model.getPlayer().setR(r);
             model.getPlayer().setG(g);
