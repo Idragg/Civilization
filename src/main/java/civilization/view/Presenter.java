@@ -4,6 +4,7 @@ import civilization.model.Model;
 import civilization.model.map.Map;
 import civilization.model.map.TerrainType;
 import civilization.model.map.Tile;
+import civilization.model.player.Player;
 import civilization.model.units.Unit;
 import civilization.model.units.Warrior;
 import civilization.view.tile.TileView;
@@ -61,17 +62,12 @@ public class Presenter {
             Unit unit = selectedTile.getUnit();
             if (unit != null) {
                 int distance = calculateDistance(selectedTile, clickedTile);
-                // STAP 2: moves unit to new tile
 
                 if (distance <= unit.getMovementPoints()) {
                     moveUnit(selectedTile, clickedTile);
                 } else {
-                    System.out.println("Te ver! Afstand: " + distance);
                     handleMovementToBig();
                 }
-                System.out.println("Van: " + selectedTile.getCol() + "," + selectedTile.getRow());
-                System.out.println("Naar: " + clickedTile.getCol() + "," + clickedTile.getRow());
-                System.out.println("Berekende afstand: " + distance);
 
                 selectedTile = null; // unselects tile
                 renderMap(); // draws map after change
@@ -112,13 +108,10 @@ public class Presenter {
         // 1. Haal de unit op
         Unit unit = from.getUnit();
 
-        // 2. Veiligheidscheck: is er wel een unit om te verplaatsen?
+
         if (unit != null && to.getUnit() == null) {
-            // 3. Update het model: verplaats de referentie
             to.setUnit(unit);
             from.removeUnit();
-
-            // 4. Update de unit zelf (nu is hij gegarandeerd niet null)
             unit.setCoordinates(to.getCol(), to.getRow());
         }
     }
@@ -127,6 +120,7 @@ public class Presenter {
     private void renderMap() {
         view.clear();
         Map map = model.getMap();
+        Player player = model.getPlayer();
 
         for (int col = 0; col < map.getWidth(); col++) {
             for (int row = 0; row < map.getHeight(); row++) {
@@ -134,7 +128,7 @@ public class Presenter {
                 view.addTile(col, row, getTerrainColor(tile.getTerrainType()));
 
                 if (tile.getUnit() != null) {
-                    view.addUnitToTile(col, row, Color.BLUE, settlerImage);
+                    view.addUnitToTile(col, row, Color.rgb(player.getR(), player.getG(), player.getB()), settlerImage);
                 } else {
                     // BELANGRIJK: Haal de unit weg als er geen meer staat!
                     view.addUnitToTile(col, row, null, null);

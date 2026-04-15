@@ -5,8 +5,7 @@ public class Settler extends Unit{
     private int health;
     private int position;
 
-    public Settler(int position) {
-        this.position = position;
+    public Settler() {
         this.health = MAX_HEALTH;
     }
 }

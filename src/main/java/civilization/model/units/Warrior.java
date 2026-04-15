@@ -6,7 +6,6 @@ public class Warrior extends Unit{
     private int position;
 
     public Warrior() {
-        this.position = position;
         this.health = MAX_HEALTH;
     }
 }
