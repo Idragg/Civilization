@@ -171,14 +171,4 @@ public class Presenter {
         };
     }
 
-    private Image getCityImage(int level) {
-        // Zorg dat je bestanden in resources/fasesCities/ staan als level0.png, level1.png etc.
-        String path = "/fasesCities/level" + level + ".png";
-        try {
-            return new Image(getClass().getResourceAsStream(path));
-        } catch (Exception e) {
-            System.out.println("Afbeelding niet gevonden: " + path);
-            return null;
-        }
-    }
 }
