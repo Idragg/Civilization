@@ -4,9 +4,10 @@ import civilization.model.Model;
 import civilization.model.map.Map;
 import civilization.model.map.TerrainType;
 import civilization.model.map.Tile;
+import civilization.model.player.City;
 import civilization.model.player.Player;
+import civilization.model.units.Settler;
 import civilization.model.units.Unit;
-import civilization.model.units.Warrior;
 import civilization.view.tile.TileView;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
@@ -26,6 +27,7 @@ public class Presenter {
         this.view = view;
         renderMap();
         addEventHandlers();
+
     }
 
     public void addEventHandlers() {
@@ -40,7 +42,6 @@ public class Presenter {
                     final int finalCol = col;
                     final int finalRow = row;
 
-                    // Gebruik de standaard JavaFX methode
                     tileView.setOnMouseClicked(event -> {
                         handleTileClick(finalCol, finalRow);
                     });
@@ -51,6 +52,16 @@ public class Presenter {
 
     public void handleTileClick(int col, int row) {
         Tile clickedTile = model.getMap().getTile(col, row);
+
+        if (selectedTile != null && selectedTile == clickedTile) {
+            if (selectedTile.getUnit() instanceof Settler) {
+                model.settleCity(col, row);
+                selectedTile = null;
+                renderMap();
+                addEventHandlers();
+            }
+            return;
+        }
 
         if (selectedTile == null) {
             // STAP 1: select the unit you want to move
@@ -116,7 +127,7 @@ public class Presenter {
         }
     }
 
-    // makes te map and places a unit on the board
+    // makes the map and places a unit on the board
     private void renderMap() {
         view.clear();
         Map map = model.getMap();
@@ -127,11 +138,23 @@ public class Presenter {
                 Tile tile = map.getTile(col, row);
                 view.addTile(col, row, getTerrainColor(tile.getTerrainType()));
 
+                if (tile.hasCity()) {
+                    City city = tile.getCity();
+                    Player owner = city.getOwner();
+
+                    // Gebruik de spelerkleur van de eigenaar van de stad
+                    Color cityColor = Color.rgb(owner.getR(), owner.getG(), owner.getB());
+
+                    // Bepaal het level op basis van inwoners
+                    int level = city.getAmountInhabitants();
+
+                    // Roep de methode aan zonder Image, maar met het level (int)
+                    view.addCityToTile(col, row, cityColor, city.getNameCity(), level);
+                }
+
                 if (tile.getUnit() != null) {
+                    // Gebruik hier de kleur van de huidige speler voor de unit marker
                     view.addUnitToTile(col, row, Color.rgb(player.getR(), player.getG(), player.getB()), settlerImage);
-                } else {
-                    // BELANGRIJK: Haal de unit weg als er geen meer staat!
-                    view.addUnitToTile(col, row, null, null);
                 }
             }
         }
@@ -146,5 +169,16 @@ public class Presenter {
             case MOUNTAIN -> Color.SADDLEBROWN;
             case FOREST -> Color.FORESTGREEN;
         };
+    }
+
+    private Image getCityImage(int level) {
+        // Zorg dat je bestanden in resources/fasesCities/ staan als level0.png, level1.png etc.
+        String path = "/fasesCities/level" + level + ".png";
+        try {
+            return new Image(getClass().getResourceAsStream(path));
+        } catch (Exception e) {
+            System.out.println("Afbeelding niet gevonden: " + path);
+            return null;
+        }
     }
 }
